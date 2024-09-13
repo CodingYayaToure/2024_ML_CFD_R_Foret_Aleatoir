@@ -2,12 +2,15 @@ import streamlit as st
 import joblib
 import pandas as pd
 
-# Charger le meilleur modèle
-best_rf = joblib.load('meilleur_modele_rf.pkl')
+# Charger le meilleur modèle avec gestion d'erreur
+try:
+    best_rf = joblib.load('meilleur_modele_rf.pkl')
+except Exception as e:
+    st.error(f"Erreur lors du chargement du modèle : {e}")
+    st.stop()  # Arrête l'exécution si le modèle ne peut pas être chargé
 
 # Informations personnelles
-#photo_url = "https://github.com/CodingYayaToure/Premier_projet/blob/main/yaya_cncs-modified%20(1).png?raw=true"
-photo_url = "CFD_2024.png"
+photo_url = "CFD_2024.png"  # Assurez-vous que cette image est dans le même répertoire que votre script
 prenom = "Yaya"
 nom = "Toure"
 email = "yaya.toure@unchk.edu.sn"
@@ -40,7 +43,7 @@ Ce projet utilise des techniques d'apprentissage supervisé pour prédire le pri
 
 ### Objectif du Projet
 
-L'objectif principal est d'obtenir la certification en collecte et fouille de données de l'UADB-CNAM de Paris. Le responsable du cours est le professeur Abdoulaye Barro, que vous pouvez contacter à l'adresse suivante : [abdoulayebarro9@gmail.com](mailto:abdoulayebarro9@gmail.com) ou par telephone : +221 77 262 80 20.
+L'objectif principal est d'obtenir la certification en collecte et fouille de données de l'UADB-CNAM de Paris. Le responsable du cours est le professeur Abdoulaye Barro, que vous pouvez contacter à l'adresse suivante : [abdoulayebarro9@gmail.com](mailto:abdoulayebarro9@gmail.com) ou par téléphone : +221 77 262 80 20.
 
 ### Méthodologie
 
@@ -57,16 +60,20 @@ Cette approche permet d'utiliser efficacement les données pour générer des pr
 """)
 
 # Entrées utilisateur pour la prédiction
-ram = st.number_input("RAM (GB)", min_value=0)
-storage = st.number_input("Stockage (GB)", min_value=0)
-screen_size = st.number_input("Taille d'écran (pouces)", min_value=0.0)
+ram = st.number_input("RAM (GB)", min_value=0, step=1)
+storage = st.number_input("Stockage (GB)", min_value=0, step=1)
+screen_size = st.number_input("Taille d'écran (pouces)", min_value=0.0, step=0.1)
 
 # Bouton pour faire la prédiction
 if st.button("Prédire le Prix"):
-    new_data = pd.DataFrame({
-        'RAM (GB)': [ram],
-        'Storage (GB)': [storage],
-        'Screen Size (inches)': [screen_size]
-    })
-    prediction = best_rf.predict(new_data)
-    st.write(f'Prix prédit: ${prediction[0]:.2f}')
+    # Validation des entrées
+    if ram < 0 or storage < 0 or screen_size < 0:
+        st.error("Veuillez entrer des valeurs valides pour RAM, stockage et taille d'écran.")
+    else:
+        new_data = pd.DataFrame({
+            'RAM (GB)': [ram],
+            'Storage (GB)': [storage],
+            'Screen Size (inches)': [screen_size]
+        })
+        prediction = best_rf.predict(new_data)
+        st.write(f'Prix prédit: ${prediction[0]:.2f}')
